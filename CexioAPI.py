@@ -28,7 +28,7 @@
 import urllib
 import urllib2
 import hmac
-import simplejson
+import json
 import time
 
 class CexioAPI(object):
@@ -39,27 +39,28 @@ class CexioAPI(object):
 		self.secret = secret
 
 	#for public requests
-	def __public_request(command, args = {}):
-		args = urllib.urlencode(args)
+	def __public_request(self, command, args = {}):
+		if args:
+			args = urllib.urlencode(args)
+		else
+			args = None
 		url = self.api_url + command
-		req = urllib2.Request(url, args)
-		opener = urllib2.build_opener(req)
-		f = opener.open(req)
-		res = simplejson.load(f)
+		req = urllib2.urlopen(url, args)
+		f = req.read()
+		res = json.loads(f)
 		return res
 
 	#for private requests
-	def __private_request(command, args = {}):
+	def __private_request(self, command, args = {}):
 		nonce = str(time.time()).split('.')[0]
 		message = nonce + self.client_id + self.api_key
 		signature = hmac.new(self.secret, message, digestmod = hashlib.sha256).hexdigest().upper()
 		args.update({'key' : self.api_key, 'nonce' : nonce, 'signature' : signature})
 		args = urllib.urlencode(args)
 		url = self.api_url + command
-		req = urllib2.Request(url, args)
-		opener = urllib2.build_opener(req)
-		f = opener.open(req)
-		res = simplejson.load(f)
+		req = urllib2.urlopen(url, args)
+		f = req.read()
+		res = json.loads(f)
 		return res
 
 	############### ticker ####################
@@ -70,14 +71,14 @@ class CexioAPI(object):
 		#volume - last 24 hours volume
 		#bid - highest buy order
 		#ask - lowest sell order
-	def ticker():
+	def ticker(self):
 		return self.__public_request('ticker/GHS/BTC')
 
 	############### order_book ###############
 	#Returns JSON dictionary with "bids" and "asks". 
 	#Each is a list of open orders and each order is 
 	#represented as a list of price and amount.
-	def order_book():
+	def order_book(self):
 		return self.__public_request('order_book/GHS/BTC')
 
 	############### trade_history ###############
@@ -86,7 +87,7 @@ class CexioAPI(object):
 		#amount - trade amount
 		#price - price
 		#date - UNIX timestamp
-	def trade_history(since = 1):
+	def trade_history(self, since = 1):
 		args = {'since' : since}
 		return self.__public_request('trade_history/GHS/BTC', args)
 
@@ -95,7 +96,7 @@ class CexioAPI(object):
 		#available - available balance
 		#orders - balance in pending orders
 		#bonus - referral program bonus
-	def balance():
+	def balance(self):
 		return self.__private_request('balance')
 
 	############## open orders #############
@@ -106,14 +107,14 @@ class CexioAPI(object):
 		#price - price
 		#amount - amount
 		#pending - pending amount (if partially executed)
-	def open_orders():
+	def open_orders(self):
 		return self.__private_request('open_orders/GHS/BTC')
 
 	############## cancel order ############
 	#Returns 'true' if order has been found and canceled.
 	#Params:
 		#id - order ID
-	def cancel_order(order_id):
+	def cancel_order(self, order_id):
 		args = {'order_id' : order_id}
 		return self.__private_request('cancel_order/GHS/BTC', args)
 
@@ -129,14 +130,6 @@ class CexioAPI(object):
 		#type - 'buy' or 'sell'
 		#amount - amount
 		#price - price
-	def place_order(p_type = 'buy', amount = 1, price = 1):
+	def place_order(self, p_type = 'buy', amount = 1, price = 1):
 		args = {'type' : p_type, 'amount' : amount, 'price' : price}
 		return self.__private_request('place_order/GHS/BTC', args)
-
-
-
-
-
-
-
-
