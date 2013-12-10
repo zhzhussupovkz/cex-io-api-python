@@ -42,13 +42,13 @@ class CexioAPI(object):
 	def __public_request(self, command, args = {}):
 		if args:
 			args = urllib.urlencode(args)
-		else
+		else:
 			args = None
 		url = self.api_url + command
-		req = urllib2.urlopen(url, args)
-		f = req.read()
-		res = json.loads(f)
-		return res
+		req = urllib2.Request(url, args)
+		res = urllib2.urlopen(req).read()
+		final = json.loads(res)
+		return final
 
 	#for private requests
 	def __private_request(self, command, args = {}):
@@ -58,10 +58,10 @@ class CexioAPI(object):
 		args.update({'key' : self.api_key, 'nonce' : nonce, 'signature' : signature})
 		args = urllib.urlencode(args)
 		url = self.api_url + command
-		req = urllib2.urlopen(url, args)
-		f = req.read()
-		res = json.loads(f)
-		return res
+		req = urllib2.Request(url, args)
+		res = urllib2.urlopen(req).read()
+		final = json.loads(res)
+		return final
 
 	############### ticker ####################
 	#Returns JSON dictionary:
